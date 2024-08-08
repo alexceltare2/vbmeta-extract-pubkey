@@ -1,0 +1,100 @@
+###############################################################################
+#
+# Python code for supporting Sparse Images for porting in the future
+# if/when required:
+#
+###############################################################################
+#
+# if not (major_version == 1 and minor_version == 0):
+#   raise ValueError('Encountered sparse image format version {}.{} but '
+#                    'only 1.0 is supported'.format(major_version,
+#                                                   minor_version))
+# if file_hdr_sz != struct.calcsize(self.HEADER_FORMAT):
+#   raise ValueError('Unexpected file_hdr_sz value {}.'.
+#                    format(file_hdr_sz))
+# if chunk_hdr_sz != struct.calcsize(ImageChunk.FORMAT):
+#   raise ValueError('Unexpected chunk_hdr_sz value {}.'.
+#                    format(chunk_hdr_sz))
+#
+# self.block_size = block_size
+#
+# # Build an list of chunks by parsing the file.
+# self._chunks = []
+#
+# # Find the smallest offset where only "Don't care" chunks
+# # follow. This will be the size of the content in the sparse
+# # image.
+# offset = 0
+# output_offset = 0
+# for _ in xrange(1, self._num_total_chunks + 1):
+#   chunk_offset = self._image.tell()
+#
+#   header_bin = self._image.read(struct.calcsize(ImageChunk.FORMAT))
+#   (chunk_type, _, chunk_sz, total_sz) = struct.unpack(ImageChunk.FORMAT,
+#                                                       header_bin)
+#   data_sz = total_sz - struct.calcsize(ImageChunk.FORMAT)
+#
+#   if chunk_type == ImageChunk.TYPE_RAW:
+#     if data_sz != (chunk_sz * self.block_size):
+#       raise ValueError('Raw chunk input size ({}) does not match output '
+#                        'size ({})'.
+#                        format(data_sz, chunk_sz*self.block_size))
+#     self._chunks.append(ImageChunk(ImageChunk.TYPE_RAW,
+#                                    chunk_offset,
+#                                    output_offset,
+#                                    chunk_sz*self.block_size,
+#                                    self._image.tell(),
+#                                    None))
+#     self._image.read(data_sz)
+#
+#   elif chunk_type == ImageChunk.TYPE_FILL:
+#     if data_sz != 4:
+#       raise ValueError('Fill chunk should have 4 bytes of fill, but this '
+#                        'has {}'.format(data_sz))
+#     fill_data = self._image.read(4)
+#     self._chunks.append(ImageChunk(ImageChunk.TYPE_FILL,
+#                                    chunk_offset,
+#                                    output_offset,
+#                                    chunk_sz*self.block_size,
+#                                    None,
+#                                    fill_data))
+#   elif chunk_type == ImageChunk.TYPE_DONT_CARE:
+#     if data_sz != 0:
+#       raise ValueError('Don\'t care chunk input size is non-zero ({})'.
+#                        format(data_sz))
+#     self._chunks.append(ImageChunk(ImageChunk.TYPE_DONT_CARE,
+#                                    chunk_offset,
+#                                    output_offset,
+#                                    chunk_sz*self.block_size,
+#                                    None,
+#                                    None))
+#   elif chunk_type == ImageChunk.TYPE_CRC32:
+#     if data_sz != 4:
+#       raise ValueError('CRC32 chunk should have 4 bytes of CRC, but '
+#                        'this has {}'.format(data_sz))
+#     self._image.read(4)
+#   else:
+#     raise ValueError('Unknown chunk type {}'.format(chunk_type))
+#
+#   offset += chunk_sz
+#   output_offset += chunk_sz*self.block_size
+#
+# # Record where sparse data end.
+# self._sparse_end = self._image.tell()
+#
+# # Now that we've traversed all chunks, sanity check.
+# if self._num_total_blocks != offset:
+#   raise ValueError('The header said we should have {} output blocks, '
+#                    'but we saw {}'.format(self._num_total_blocks, offset))
+# junk_len = len(self._image.read())
+# if junk_len > 0:
+#   raise ValueError('There were {} bytes of extra data at the end of the '
+#                    'file.'.format(junk_len))
+#
+# # Assign |image_size|.
+# self.image_size = output_offset
+#
+# # This is used when bisecting in read() to find the initial slice.
+# self._chunk_output_offsets = [i.output_offset for i in self._chunks]
+#
+# self.is_sparse = True
